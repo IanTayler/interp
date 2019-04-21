@@ -11,10 +11,11 @@ isOperator :: Token -> Bool
 isOperator (OperatorTok _ _) = True
 isOperator _                 = False
 
--- | True if Token is number.
-isNumber :: Token -> Bool
-isNumber (NumberTok _) = True
-isNumber _             = False
+-- | True if Token is a Montague-style entity.
+isEntity :: Token -> Bool
+isEntity (NumberTok _) = True
+isEntity (NameTok _)   = True
+isEntity _             = False
 
 -- | True if Token is an opening parenthesis.
 isOpenParen :: Token -> Bool
@@ -44,6 +45,7 @@ unaryWithoutChild (OperatorTok _ id) =
   (InterTree (OperatorTok 1 (unaryEquiv id)) [], 1)
 
 nonUnary (NumberTok v) = (InterTree (NumberTok v) [], 0)
+nonUnary (NameTok n)   = (InterTree (NameTok n) [], 0)
 nonUnary tok           = (InterTree tok [], 2)
 
 -- | Detect unary operators. Return list of (tree, isUnary) pairs.
@@ -55,7 +57,7 @@ unaryDetectionPass :: Maybe Token -> [Token] -> [(InterTree, Int)]
 unaryDetectionPass _ [] = []
 unaryDetectionPass prev (tok:toks)
   | isOperator tok && nullOpOrOpenParen prev =
-    if isNumber nextTok
+    if isEntity nextTok
       then unaryWithChild tok nextTok :
            unaryDetectionPass (Just nextTok) (tail toks)
       else unaryWithoutChild tok : unaryDetectionPass (Just tok) toks

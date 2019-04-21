@@ -9,6 +9,10 @@ prodOp = "*"
 
 divOp = "/"
 
+createAssignOp = ":="
+
+assignOp = "="
+
 data OperatorID
   = MinusOp
   | PlusOp
@@ -16,6 +20,8 @@ data OperatorID
   | UnPlusOp
   | ProdOp
   | DivOp
+  | CreateAssignOp
+  | AssignOp
   deriving (Show, Eq)
 
 -- | Convert an operatorID to its unary equivalent, if it exists.
@@ -27,6 +33,7 @@ unaryEquiv op      = op -- Catch all case.
 -- | Gets the precedence value for an operator ID.
 opPrec :: OperatorID -> Int
 opPrec op
+  | op `elem` [CreateAssignOp, AssignOp] = 6
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
   | op `elem` [UnMinusOp, UnPlusOp] = 36
