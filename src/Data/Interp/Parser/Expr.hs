@@ -43,6 +43,7 @@ nullOpOrOpenParen _                        = False
 unaryFromTok (OperatorTok _ id) =
   (InterTree (OperatorTok 1 (unaryEquiv id)) [], 1)
 
+nonUnary :: Token -> (InterTree, Int)
 nonUnary (NumberTok v) = (InterTree (NumberTok v) [], 0)
 nonUnary (NameTok n)   = (InterTree (NameTok n) [], 0)
 nonUnary tok           = (InterTree tok [], 2)

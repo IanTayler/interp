@@ -1,19 +1,23 @@
 -- | Mostly constants for operators.
+{-# LANGUAGE OverloadedStrings #-}
+
 module Data.Interp.Operators where
 
-minusOp = "-"
+import           Data.Text (Text)
 
-plusOp = "+"
+minusOp = "-" :: Text
 
-prodOp = "*"
+plusOp = "+" :: Text
 
-divOp = "/"
+prodOp = "*" :: Text
 
-createAssignOp = ":="
+divOp = "/" :: Text
 
-assignOp = "="
+createAssignOp = ":=" :: Text
 
-returnOp = "return"
+assignOp = "=" :: Text
+
+returnOp = "return" :: Text
 
 data OperatorID
   = MinusOp
@@ -36,7 +40,7 @@ unaryEquiv op      = op -- Catch all case.
 -- | Gets the precedence value for an operator ID.
 opPrec :: OperatorID -> Int
 opPrec op
-  | op `elem` [ReturnOp] = 3
+  | op == ReturnOp = 3
   | op `elem` [CreateAssignOp, AssignOp] = 6
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
