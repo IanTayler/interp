@@ -38,10 +38,7 @@ nullOpOrOpenParen (Just (OperatorTok _ _)) = True
 nullOpOrOpenParen (Just OpenParenTok)      = True
 nullOpOrOpenParen _                        = False
 
-unaryWithChild (OperatorTok _ id) child =
-  (InterTree (OperatorTok 1 (unaryEquiv id)) [InterTree child []], 0)
-
-unaryWithoutChild (OperatorTok _ id) =
+unaryFromTok (OperatorTok _ id) =
   (InterTree (OperatorTok 1 (unaryEquiv id)) [], 1)
 
 nonUnary (NumberTok v) = (InterTree (NumberTok v) [], 0)
@@ -57,10 +54,7 @@ unaryDetectionPass :: Maybe Token -> [Token] -> [(InterTree, Int)]
 unaryDetectionPass _ [] = []
 unaryDetectionPass prev (tok:toks)
   | isOperator tok && nullOpOrOpenParen prev =
-    if isEntity nextTok
-      then unaryWithChild tok nextTok :
-           unaryDetectionPass (Just nextTok) (tail toks)
-      else unaryWithoutChild tok : unaryDetectionPass (Just tok) toks
+    unaryFromTok tok : unaryDetectionPass (Just tok) toks
   | otherwise = nonUnary tok : unaryDetectionPass (Just tok) toks
   where
     nextTok = head toks

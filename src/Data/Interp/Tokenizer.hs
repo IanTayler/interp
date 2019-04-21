@@ -3,6 +3,7 @@
 module Data.Interp.Tokenizer where
 
 import           Control.Applicative
+import           Data.Char
 import           Text.ParserCombinators.ReadP
 
 import           Data.Interp.Operators
@@ -40,18 +41,11 @@ getOpToken stringRep
   | stringRep == divOp = OperatorTok 2 DivOp
   | stringRep == createAssignOp = OperatorTok 2 CreateAssignOp
   | stringRep == assignOp = OperatorTok 2 AssignOp
-
--- | Helper that checks char is a digit.
-isDigit :: Char -> Bool
-isDigit c = c >= '0' && c <= '9'
+  | stringRep == returnOp = OperatorTok 2 ReturnOp
 
 -- | Parser for numbers.
 numberP :: ReadP Token
 numberP = fmap getNumberToken (munch1 isDigit)
-
--- | Helper that checks char is alphabetic.
-isAlpha :: Char -> Bool
-isAlpha c = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_'
 
 nameP = fmap getNameToken (munch1 isAlpha)
 
@@ -65,7 +59,9 @@ operatorP =
     (foldr
        (<|>)
        pfail
-       (map string [plusOp, minusOp, prodOp, divOp, createAssignOp, assignOp]))
+       (map
+          string
+          [plusOp, minusOp, prodOp, divOp, createAssignOp, assignOp, returnOp]))
 
 -- | Parser for parenthesis.
 parenP :: ReadP Token
