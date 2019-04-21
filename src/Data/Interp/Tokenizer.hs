@@ -51,7 +51,14 @@ getOpToken stringRep
   | stringRep == divOp = OperatorTok 2 DivOp
   | stringRep == createAssignOp = OperatorTok 2 CreateAssignOp
   | stringRep == assignOp = OperatorTok 2 AssignOp
-  | stringRep == returnOp = OperatorTok 2 ReturnOp
+  | stringRep == semicolonOp = OperatorTok 2 SemicolonOp
+  | stringRep == returnOp = OperatorTok 1 ReturnOp
+  | stringRep == deferOp = OperatorTok 1 DeferOp
+  | stringRep == ifOp = OperatorTok 1 IfOp
+  | stringRep == thenOp = OperatorTok 0 ThenOp
+  | stringRep == forOp = OperatorTok 1 ForOp
+  | stringRep == doOp = OperatorTok 0 DoOp
+  | stringRep == endOp = OperatorTok 0 EndOp
 
 -- | Whitespace and comment parser/ignorer.
 spaceSkipP :: Parser ()
@@ -87,13 +94,21 @@ operatorP =
     (foldr
        (<|>)
        (symbolP plusOp)
-       (map symbolP [minusOp, prodOp, divOp, createAssignOp, assignOp]))
+       (map
+          symbolP
+          [minusOp, prodOp, divOp, createAssignOp, assignOp, semicolonOp]))
 
 fullKeyword :: Text -> Parser Text
 fullKeyword inp = lexemeP $ P.string inp <* P.notFollowedBy P.alphaNumChar
 
 keywordP :: Parser Token
-keywordP = fmap getOpToken (fullKeyword returnOp)
+keywordP =
+  fmap
+    getOpToken
+    (foldr
+       (<|>)
+       (fullKeyword returnOp)
+       (map fullKeyword [deferOp, ifOp, thenOp, forOp, doOp, endOp]))
 
 -- | Parser for parenthesis.
 parenP :: Parser Token

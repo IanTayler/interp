@@ -17,7 +17,21 @@ createAssignOp = ":=" :: Text
 
 assignOp = "=" :: Text
 
+semicolonOp = ";" :: Text
+
 returnOp = "return" :: Text
+
+deferOp = "defer" :: Text
+
+ifOp = "if" :: Text
+
+thenOp = "then" :: Text
+
+forOp = "for" :: Text
+
+doOp = "do" :: Text
+
+endOp = "end" :: Text
 
 data OperatorID
   = MinusOp
@@ -28,7 +42,14 @@ data OperatorID
   | DivOp
   | CreateAssignOp
   | AssignOp
+  | SemicolonOp
   | ReturnOp
+  | DeferOp
+  | IfOp
+  | ThenOp
+  | ForOp
+  | DoOp
+  | EndOp
   deriving (Show, Eq)
 
 -- | Convert an operatorID to its unary equivalent, if it exists.
@@ -40,7 +61,8 @@ unaryEquiv op      = op -- Catch all case.
 -- | Gets the precedence value for an operator ID.
 opPrec :: OperatorID -> Int
 opPrec op
-  | op == ReturnOp = 3
+  | op `elem` [ReturnOp, DeferOp, IfOp, ThenOp, ForOp, DoOp, EndOp] = 3
+  | op == SemicolonOp = 4
   | op `elem` [CreateAssignOp, AssignOp] = 6
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
