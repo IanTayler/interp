@@ -1,3 +1,4 @@
+-- | Parser for expressions and statements (despite its name)
 module Data.Interp.Parser.Expr
   ( parseExpr
   ) where
@@ -33,6 +34,18 @@ isCloseParen _             = False
 isParen :: Token -> Bool
 isParen tok = isOpenParen tok || isCloseParen tok
 
+-- | True if Token is ignored if at the end of a line.
+isFinalIgnore :: Token -> Bool
+isFinalIgnore (OperatorTok _ ThenOp) = True
+isFinalIgnore (OperatorTok _ DoOp)   = True
+isFinalIgnore tok                    = False
+
+-- | True if Token is treated as zero arity if at the end of a line.
+isFinalZero :: Token -> Bool
+isFinalZero (OperatorTok _ EndOp)  = True
+isFinalZero (OperatorTok _ ElseOp) = True
+isFinalZero tok                    = False
+
 -- | True if Nothing, is operator or open parenthesis.
 nullOpOrOpenParen :: Maybe Token -> Bool
 nullOpOrOpenParen Nothing                  = True
@@ -45,8 +58,10 @@ unaryFromTok (OperatorTok _ id) =
 
 nonUnary :: Token -> (InterTree, Int)
 nonUnary (NumberTok v) = (InterTree (NumberTok v) [], 0)
-nonUnary (NameTok n)   = (InterTree (NameTok n) [], 0)
-nonUnary tok           = (InterTree tok [], 2)
+nonUnary (NameTok n) = (InterTree (NameTok n) [], 0)
+nonUnary (OperatorTok arity opId) =
+  (InterTree (OperatorTok arity opId) [], arity)
+nonUnary tok = (InterTree tok [], 2)
 
 -- | Detect unary operators. Return list of (tree, isUnary) pairs.
 -- The returned list will have the same tokens in the same order,
@@ -85,8 +100,13 @@ stackPass [] [] = Nothing
 stackPass [] [(tree, 0)] = Just tree
 stackPass [] [(tree, _)] = Nothing
 stackPass [] stack = stackPass [] (unrollStack stack)
-stackPass (fst:other) [] = stackPass other [fst]
+stackPass ((fstTree, fstArity):other) [] =
+  if null other && (isFinalZero $ treeToken fstTree)
+    then stackPass [] [(fstTree, 0)]
+    else stackPass other [(fstTree, fstArity)]
 stackPass ((fstTree, 2):other) ((topTree, 0):restStack)
+  | null other && isFinalIgnore fstTreeToken =
+    stackPass [] ((topTree, 0) : restStack)
   | isOpenParen fstTreeToken =
     stackPass other ((fstTree, 2) : (topTree, 0) : restStack)
   | isCloseParen fstTreeToken =
@@ -105,6 +125,8 @@ stackPass ((fstTree, 2):other) ((topTree, 0):restStack)
     fstTreePrec = treeOpPrec fstTree
 -- Here we have topArity != 0
 stackPass ((fstTree, 2):other) ((topTree, topArity):restStack)
+  | null other && isFinalIgnore fstTreeToken =
+    stackPass [] ((topTree, topArity) : restStack)
   | isOpenParen fstTreeToken =
     stackPass other ((fstTree, 2) : (topTree, topArity) : restStack)
   | isCloseParen fstTreeToken =
@@ -117,6 +139,6 @@ stackPass ((fstTree, 2):other) ((topTree, topArity):restStack)
 stackPass ((fstTree, arity):other) stack =
   stackPass other ((fstTree, arity) : stack)
 
--- | Function for getting an AST InterTree from tokenized text representing an expression.
+-- | Function for getting an AST InterTree from tokenized text representing an expression or a statement.
 parseExpr :: [Token] -> Maybe InterTree
 parseExpr toks = stackPass (unaryDetectionPass Nothing toks) []

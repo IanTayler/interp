@@ -26,6 +26,8 @@ data Token
   | NameTok Text
   | OpenParenTok
   | CloseParenTok
+  -- Special token not generated from text.
+  | BlockTok
 
 instance Show Token where
   show tok =
@@ -35,12 +37,13 @@ instance Show Token where
       NameTok name     -> show name
       OpenParenTok     -> "OpenParen"
       CloseParenTok    -> "CloseParen"
+      BlockTok         -> "BlockTok"
 
 getNumberToken :: Double -> Token
 getNumberToken = NumberTok
 
 getNameToken :: Text -> Token
-getNameToken s = NameTok s
+getNameToken = NameTok
 
 -- | Create a Token from a string. Assume it's an operator.
 getOpToken :: Text -> Token
@@ -55,9 +58,10 @@ getOpToken stringRep
   | stringRep == returnOp = OperatorTok 1 ReturnOp
   | stringRep == deferOp = OperatorTok 1 DeferOp
   | stringRep == ifOp = OperatorTok 1 IfOp
-  | stringRep == thenOp = OperatorTok 0 ThenOp
+  | stringRep == thenOp = OperatorTok 2 ThenOp
+  | stringRep == elseOp = OperatorTok 2 ElseOp
   | stringRep == forOp = OperatorTok 1 ForOp
-  | stringRep == doOp = OperatorTok 0 DoOp
+  | stringRep == doOp = OperatorTok 2 DoOp
   | stringRep == endOp = OperatorTok 0 EndOp
 
 -- | Whitespace and comment parser/ignorer.
@@ -108,7 +112,7 @@ keywordP =
     (foldr
        (<|>)
        (fullKeyword returnOp)
-       (map fullKeyword [deferOp, ifOp, thenOp, forOp, doOp, endOp]))
+       (map fullKeyword [deferOp, ifOp, thenOp, elseOp, forOp, doOp, endOp]))
 
 -- | Parser for parenthesis.
 parenP :: Parser Token

@@ -27,6 +27,8 @@ ifOp = "if" :: Text
 
 thenOp = "then" :: Text
 
+elseOp = "else" :: Text
+
 forOp = "for" :: Text
 
 doOp = "do" :: Text
@@ -47,6 +49,7 @@ data OperatorID
   | DeferOp
   | IfOp
   | ThenOp
+  | ElseOp
   | ForOp
   | DoOp
   | EndOp
@@ -61,7 +64,7 @@ unaryEquiv op      = op -- Catch all case.
 -- | Gets the precedence value for an operator ID.
 opPrec :: OperatorID -> Int
 opPrec op
-  | op `elem` [ReturnOp, DeferOp, IfOp, ThenOp, ForOp, DoOp, EndOp] = 3
+  | op `elem` [ReturnOp, DeferOp, IfOp, ThenOp, ElseOp, ForOp, DoOp, EndOp] = 3
   | op == SemicolonOp = 4
   | op `elem` [CreateAssignOp, AssignOp] = 6
   | op `elem` [MinusOp, PlusOp] = 12
