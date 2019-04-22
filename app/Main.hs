@@ -9,8 +9,5 @@ import           Data.Interp.Tokenizer
 
 main :: IO ()
 main = do
-  putStr ">> "
-  hFlush stdout
-  line <- getLine
-  print $ parse (tokenize $ T.pack line)
-  main
+  content <- getContents
+  print $ parse $ T.pack content
