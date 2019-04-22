@@ -5,6 +5,7 @@
 module Data.Interp.Tokenizer where
 
 import           Control.Applicative
+import           Data.Char
 import           Data.Either
 import           Data.Void
 
@@ -84,9 +85,11 @@ numberP =
   getNumberToken <$>
   (P.try (lexemeP L.float) <|> (fromIntegral <$> lexemeP L.decimal))
 
+genericIsLetter c = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+
 -- | Parser for alphabetic names.
 nameP :: Parser Token
-nameP = getNameToken . T.pack <$> P.someTill P.letterChar P.space1
+nameP = getNameToken <$> P.takeWhile1P Nothing (\x -> x >= 'a' && x <= 'z')
 
 -- | Parser for operators.
 -- Will return operators with binary-arity IDs always. The parser will
