@@ -90,7 +90,7 @@ genericIsLetter c = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 
 -- | Parser for alphabetic names.
 nameP :: Parser Token
-nameP = getNameToken <$> P.takeWhile1P Nothing (\x -> x >= 'a' && x <= 'z')
+nameP = getNameToken <$> P.takeWhile1P Nothing genericIsLetter
 
 -- | Parser for operators.
 -- Will return operators with binary-arity IDs always. The parser will
