@@ -56,7 +56,10 @@ getOpToken stringRep
   | stringRep == createAssignOp = OperatorTok 2 CreateAssignOp
   | stringRep == assignOp = OperatorTok 2 AssignOp
   | stringRep == semicolonOp = OperatorTok 2 SemicolonOp
+  | stringRep == commaOp = OperatorTok 2 CommaOp
   | stringRep == retTypeOp = OperatorTok 2 RetTypeOp
+  | stringRep == typeSpecOp = OperatorTok 2 TypeSpecOp
+  | stringRep == funcOp = OperatorTok 1 FuncOp
   | stringRep == returnOp = OperatorTok 1 ReturnOp
   | stringRep == deferOp = OperatorTok 1 DeferOp
   | stringRep == ifOp = OperatorTok 1 IfOp
@@ -90,7 +93,10 @@ genericIsLetter c = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 
 -- | Parser for alphabetic names.
 nameP :: Parser Token
-nameP = getNameToken <$> P.takeWhile1P Nothing genericIsLetter
+nameP = do
+  res <- getNameToken <$> P.takeWhile1P Nothing genericIsLetter
+  P.space
+  return res
 
 -- | Parser for operators.
 -- Will return operators with binary-arity IDs always. The parser will
@@ -103,14 +109,16 @@ operatorP =
        (<|>)
        (symbolP plusOp)
        (map
-          symbolP
-          [ minusOp
+          (P.try . symbolP)
+          [ retTypeOp
           , prodOp
           , divOp
           , createAssignOp
           , assignOp
           , semicolonOp
-          , retTypeOp
+          , commaOp
+          , minusOp
+          , typeSpecOp
           ]))
 
 fullKeyword :: Text -> Parser Text
@@ -123,7 +131,9 @@ keywordP =
     (foldr
        (<|>)
        (fullKeyword returnOp)
-       (map fullKeyword [deferOp, ifOp, thenOp, elseOp, forOp, doOp, endOp]))
+       (map
+          (P.try . fullKeyword)
+          [funcOp, deferOp, ifOp, thenOp, elseOp, forOp, doOp, endOp]))
 
 -- | Parser for parenthesis.
 parenP :: Parser Token

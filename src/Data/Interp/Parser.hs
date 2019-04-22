@@ -53,6 +53,7 @@ isBlockStart :: InterTree -> Bool
 isBlockStart (InterTree (OperatorTok _ IfOp) _)   = True
 isBlockStart (InterTree (OperatorTok _ ForOp) _)  = True
 isBlockStart (InterTree (OperatorTok _ ElseOp) _) = True
+isBlockStart (InterTree (OperatorTok _ FuncOp) _) = True
 isBlockStart tree                                 = False
 
 -- | Form a block. Push back trees until you find a block-beginning mark.

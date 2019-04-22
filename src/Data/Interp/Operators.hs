@@ -19,7 +19,13 @@ assignOp = "=" :: Text
 
 semicolonOp = ";" :: Text
 
+commaOp = "," :: Text
+
 retTypeOp = "->" :: Text
+
+typeSpecOp = ":" :: Text
+
+funcOp = "func" :: Text
 
 returnOp = "return" :: Text
 
@@ -47,8 +53,11 @@ data OperatorID
   | CreateAssignOp
   | AssignOp
   | SemicolonOp
+  | CommaOp
   | ApplicationOp
   | RetTypeOp
+  | TypeSpecOp
+  | FuncOp
   | ReturnOp
   | DeferOp
   | IfOp
@@ -68,11 +77,14 @@ unaryEquiv op      = op -- Catch all case.
 -- | Gets the precedence value for an operator ID.
 opPrec :: OperatorID -> Int
 opPrec op
-  | op `elem` [ReturnOp, DeferOp, IfOp, ThenOp, ElseOp, ForOp, DoOp, EndOp] = 3
+  | op `elem`
+      [ReturnOp, DeferOp, IfOp, ThenOp, ElseOp, ForOp, DoOp, EndOp, FuncOp] = 3
   | op == SemicolonOp = 4
+  | op == CommaOp = 5
   | op `elem` [CreateAssignOp, AssignOp] = 6
   | op == ApplicationOp = 9
   | op == RetTypeOp = 10
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
   | op `elem` [UnMinusOp, UnPlusOp] = 36
+  | op == TypeSpecOp = 48
