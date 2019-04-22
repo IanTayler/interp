@@ -56,6 +56,7 @@ getOpToken stringRep
   | stringRep == createAssignOp = OperatorTok 2 CreateAssignOp
   | stringRep == assignOp = OperatorTok 2 AssignOp
   | stringRep == semicolonOp = OperatorTok 2 SemicolonOp
+  | stringRep == retTypeOp = OperatorTok 2 RetTypeOp
   | stringRep == returnOp = OperatorTok 1 ReturnOp
   | stringRep == deferOp = OperatorTok 1 DeferOp
   | stringRep == ifOp = OperatorTok 1 IfOp
@@ -103,7 +104,14 @@ operatorP =
        (symbolP plusOp)
        (map
           symbolP
-          [minusOp, prodOp, divOp, createAssignOp, assignOp, semicolonOp]))
+          [ minusOp
+          , prodOp
+          , divOp
+          , createAssignOp
+          , assignOp
+          , semicolonOp
+          , retTypeOp
+          ]))
 
 fullKeyword :: Text -> Parser Text
 fullKeyword inp = lexemeP $ P.string inp <* P.notFollowedBy P.alphaNumChar

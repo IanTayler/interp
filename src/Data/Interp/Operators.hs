@@ -19,6 +19,8 @@ assignOp = "=" :: Text
 
 semicolonOp = ";" :: Text
 
+retTypeOp = "->" :: Text
+
 returnOp = "return" :: Text
 
 deferOp = "defer" :: Text
@@ -45,6 +47,8 @@ data OperatorID
   | CreateAssignOp
   | AssignOp
   | SemicolonOp
+  | ApplicationOp
+  | RetTypeOp
   | ReturnOp
   | DeferOp
   | IfOp
@@ -67,6 +71,8 @@ opPrec op
   | op `elem` [ReturnOp, DeferOp, IfOp, ThenOp, ElseOp, ForOp, DoOp, EndOp] = 3
   | op == SemicolonOp = 4
   | op `elem` [CreateAssignOp, AssignOp] = 6
+  | op == ApplicationOp = 9
+  | op == RetTypeOp = 10
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
   | op `elem` [UnMinusOp, UnPlusOp] = 36

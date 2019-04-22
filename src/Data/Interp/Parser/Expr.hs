@@ -1,6 +1,8 @@
 -- | Parser for expressions and statements (despite its name)
 module Data.Interp.Parser.Expr
   ( parseExpr
+  , unaryDetectionPass
+  , stackPass
   ) where
 
 import           Debug.Trace
@@ -19,6 +21,10 @@ isEntity :: Token -> Bool
 isEntity (NumberTok _) = True
 isEntity (NameTok _)   = True
 isEntity _             = False
+
+isJustEntity :: Maybe Token -> Bool
+isJustEntity (Just tok) = isEntity tok
+isJustEntity Nothing    = False
 
 -- | True if Token is an opening parenthesis.
 isOpenParen :: Token -> Bool
@@ -73,9 +79,13 @@ unaryDetectionPass _ [] = []
 unaryDetectionPass prev (tok:toks)
   | isOperator tok && nullOpOrOpenParen prev =
     unaryFromTok tok : unaryDetectionPass (Just tok) toks
+  | isOpenParen tok && isJustEntity prev =
+    nonUnary insertedApplicationOp :
+    unaryDetectionPass (Just insertedApplicationOp) (tok : toks)
   | otherwise = nonUnary tok : unaryDetectionPass (Just tok) toks
   where
     nextTok = head toks
+    insertedApplicationOp = OperatorTok 2 ApplicationOp
 
 -- | Auxiliary function checking that a list has at least n elems.
 atLeast n []     = n <= 0
@@ -101,7 +111,7 @@ stackPass [] [(tree, 0)] = Just tree
 stackPass [] [(tree, _)] = Nothing
 stackPass [] stack = stackPass [] (unrollStack stack)
 stackPass ((fstTree, fstArity):other) [] =
-  if null other && (isFinalZero $ treeToken fstTree)
+  if null other && isFinalZero (treeToken fstTree)
     then stackPass [] [(fstTree, 0)]
     else stackPass other [(fstTree, fstArity)]
 stackPass ((fstTree, 2):other) ((topTree, 0):restStack)
