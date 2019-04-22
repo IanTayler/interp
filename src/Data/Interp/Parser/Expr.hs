@@ -60,14 +60,14 @@ nullOpOrOpenParen (Just OpenParenTok)      = True
 nullOpOrOpenParen _                        = False
 
 unaryFromTok (OperatorTok _ id) =
-  (InterTree (OperatorTok 1 (unaryEquiv id)) [], 1)
+  (InterTree (OperatorTok 1 (unaryEquiv id)) emptyChildren, 1)
 
 nonUnary :: Token -> (InterTree, Int)
-nonUnary (NumberTok v) = (InterTree (NumberTok v) [], 0)
-nonUnary (NameTok n) = (InterTree (NameTok n) [], 0)
+nonUnary (NumberTok v) = (InterTree (NumberTok v) emptyChildren, 0)
+nonUnary (NameTok n) = (InterTree (NameTok n) emptyChildren, 0)
 nonUnary (OperatorTok arity opId) =
-  (InterTree (OperatorTok arity opId) [], arity)
-nonUnary tok = (InterTree tok [], 2)
+  (InterTree (OperatorTok arity opId) emptyChildren, arity)
+nonUnary tok = (InterTree tok emptyChildren, 2)
 
 -- | Detect unary operators. Return list of (tree, isUnary) pairs.
 -- The returned list will have the same tokens in the same order,

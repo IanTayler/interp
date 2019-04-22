@@ -61,7 +61,7 @@ unrollBlockStack block [] = [(block, False)]
 unrollBlockStack block ((top, True):rest) =
   (treeAddChild top block, False) : rest
 unrollBlockStack block ((top, stopMark):rest) =
-  unrollBlockStack (treeAddChild block top) rest
+  unrollBlockStack (treePreppendChild block top) rest
 
 -- | Form blocks from line-based ASTs.
 -- The trees in the stack are marked with True if they start a block
@@ -76,9 +76,10 @@ makeBlocks (fstTree:rest) stack
   | isBlockEnd justFstTree && isBlockStart justFstTree =
     makeBlocks
       rest
-      ((justFstTree, True) : (unrollBlockStack (InterTree BlockTok []) stack))
+      ((justFstTree, True) :
+       unrollBlockStack (InterTree BlockTok emptyChildren) stack)
   | isBlockEnd justFstTree =
-    makeBlocks rest (unrollBlockStack (InterTree BlockTok []) stack)
+    makeBlocks rest (unrollBlockStack (InterTree BlockTok emptyChildren) stack)
   | isBlockStart justFstTree = makeBlocks rest ((justFstTree, True) : stack)
   | otherwise = makeBlocks rest ((justFstTree, False) : stack)
   where
