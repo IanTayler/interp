@@ -49,6 +49,11 @@ getNameToken = NameTok
 -- | Create a Token from a string. Assume it's an operator.
 getOpToken :: Text -> Token
 getOpToken stringRep
+  | stringRep == ltEqOp = OperatorTok 2 LtEqOp
+  | stringRep == gtEqOp = OperatorTok 2 GtEqOp
+  | stringRep == eqOp = OperatorTok 2 EqOp
+  | stringRep == ltOp = OperatorTok 2 LtOp
+  | stringRep == gtOp = OperatorTok 2 GtOp
   | stringRep == minusOp = OperatorTok 2 MinusOp
   | stringRep == plusOp = OperatorTok 2 PlusOp
   | stringRep == prodOp = OperatorTok 2 ProdOp
@@ -107,10 +112,13 @@ operatorP =
     getOpToken
     (foldr
        (<|>)
-       (symbolP plusOp)
+       (P.try $ symbolP plusOp)
        (map
           (P.try . symbolP)
           [ retTypeOp
+          , ltEqOp
+          , gtEqOp
+          , eqOp
           , prodOp
           , divOp
           , createAssignOp
@@ -119,6 +127,8 @@ operatorP =
           , commaOp
           , minusOp
           , typeSpecOp
+          , ltOp
+          , gtOp
           ]))
 
 fullKeyword :: Text -> Parser Text

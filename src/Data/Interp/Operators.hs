@@ -5,6 +5,16 @@ module Data.Interp.Operators where
 
 import           Data.Text (Text)
 
+ltEqOp = ">=" :: Text
+
+gtEqOp = "<=" :: Text
+
+eqOp = "==" :: Text
+
+ltOp = "<" :: Text
+
+gtOp = ">" :: Text
+
 minusOp = "-" :: Text
 
 plusOp = "+" :: Text
@@ -44,7 +54,12 @@ doOp = "do" :: Text
 endOp = "end" :: Text
 
 data OperatorID
-  = MinusOp
+  = LtEqOp
+  | GtEqOp
+  | EqOp
+  | LtOp
+  | GtOp
+  | MinusOp
   | PlusOp
   | UnMinusOp
   | UnPlusOp
@@ -82,9 +97,9 @@ opPrec op
   | op == SemicolonOp = 4
   | op == CommaOp = 5
   | op `elem` [CreateAssignOp, AssignOp] = 6
-  | op == ApplicationOp = 9
-  | op == RetTypeOp = 10
+  | op == RetTypeOp = 8
+  | op `elem` [LtOp, GtOp, LtEqOp, GtEqOp, EqOp] = 10
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
   | op `elem` [UnMinusOp, UnPlusOp] = 36
-  | op == TypeSpecOp = 48
+  | op `elem` [ApplicationOp, TypeSpecOp] = 48
