@@ -91,6 +91,13 @@ setLocalVar varName val state =
     else Just $
          InterState (Map.insert varName val (varMap state)) (parentState state)
 
+-- | Run a function in ascending scopes until it returns a Just value, then construct.
+-- Args:
+--  state: InterState where we will run function.
+--  function: Function to run.
+--  constructor: Takes the state and the result of the function, constructs output.
+-- Note: calling this with constructor=snd will make it return whatever
+-- "function" returns.
 findScopeAndCall ::
      InterState
   -> (InterState -> Maybe a)
