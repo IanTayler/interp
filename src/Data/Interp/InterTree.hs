@@ -2,14 +2,17 @@ module Data.Interp.InterTree where
 
 import           Data.Sequence         ((<|), (|>))
 import qualified Data.Sequence         as S
+import           Data.Text             (Text)
 
 import           Data.Interp.Operators
 import           Data.Interp.Tokenizer
 
+type TreeChildrenType = S.Seq InterTree
+
 -- | AST result of parsing text.
 data InterTree = InterTree
   { treeToken    :: Token
-  , treeChildren :: S.Seq InterTree
+  , treeChildren :: TreeChildrenType
   }
 
 -- | Alias for empty children in InterTree.
@@ -40,6 +43,12 @@ treePreppendChild tree child =
 -- | Operator precedence for a tree (-1 for non-operators)
 treeOpPrec (InterTree (OperatorTok _ id) _) = opPrec id
 treeOpPrec _                                = -1
+
+-- | Get name out of an InterTree with a NameTok as token.
+-- If not a NameTok, returns Nothing.
+getTreeTokenName :: InterTree -> Maybe Text
+getTreeTokenName (InterTree (NameTok name) _) = Just name
+getTreeTokenName other                        = Nothing
 
 instance Show InterTree where
   show tree

@@ -5,6 +5,7 @@ import           System.IO
 
 import qualified Data.Text                          as T
 
+import           Data.Interp.InterTree
 import           Data.Interp.InterTree.DirectRunner
 import           Data.Interp.Parser
 import           Data.Interp.Tokenizer
@@ -12,16 +13,22 @@ import           Data.Interp.Tokenizer
 printTreesAndValues Nothing _ = return ()
 printTreesAndValues (Just []) _ = return ()
 printTreesAndValues (Just (t:trees)) (Just (v:values)) = do
-  putStrLn (show t ++ " ==> " ++ show v)
+  putStrLn
+    (show t ++ " ==> " ++ show (fst v) ++ " with state: " ++ show (snd v))
   printTreesAndValues (Just trees) (Just values)
+
+evalInOrder :: [InterTree] -> InterState -> [(InterValue, InterState)]
+evalInOrder (tree:trees) state =
+  (nextVal, nextState) : evalInOrder trees nextState
+  where
+    (nextVal, nextState) = evalTree tree state
 
 main :: IO ()
 main = do
   content <- getContents
   let resultTrees = parse $ T.pack content
-  let values =
+  let valuesAndStates =
         if null resultTrees
           then Nothing
-          else Just $
-               map (\t -> fst (evalTree t initState)) (fromJust resultTrees)
-  printTreesAndValues resultTrees values
+          else Just $ evalInOrder (fromJust resultTrees) initState
+  printTreesAndValues resultTrees valuesAndStates

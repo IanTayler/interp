@@ -4,6 +4,7 @@ module Data.Interp.Parser
   ( parse
   ) where
 
+import qualified Data.List               as List
 import           Data.Maybe
 import           Debug.Trace
 
@@ -69,7 +70,7 @@ unrollBlockStack block ((top, stopMark):rest) =
 -- that hasn't yet formed. That way, when we find an "end" line we
 -- unroll until we find a True-marked tree.
 makeBlocks :: [Maybe InterTree] -> [(InterTree, Bool)] -> Maybe [InterTree]
-makeBlocks [] stack = Just $ map fst stack
+makeBlocks [] stack = Just $ List.reverse $ map fst stack
 makeBlocks (fstTree:rest) stack
   | null fstTree = trace (show (fstTree : rest)) Nothing
   -- Things like "else" both end a block and start a new one.
