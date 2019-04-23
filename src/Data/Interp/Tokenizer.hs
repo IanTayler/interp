@@ -73,6 +73,9 @@ getOpToken stringRep
   | stringRep == forOp = OperatorTok 1 ForOp
   | stringRep == doOp = OperatorTok 2 DoOp
   | stringRep == endOp = OperatorTok 0 EndOp
+  | stringRep == andOp = OperatorTok 2 AndOp
+  | stringRep == orOp = OperatorTok 2 OrOp
+  | stringRep == notOp = OperatorTok 1 NotOp
 
 -- | Whitespace and comment parser/ignorer.
 spaceSkipP :: Parser ()
@@ -143,7 +146,18 @@ keywordP =
        (fullKeyword returnOp)
        (map
           (P.try . fullKeyword)
-          [funcOp, deferOp, ifOp, thenOp, elseOp, forOp, doOp, endOp]))
+          [ funcOp
+          , deferOp
+          , ifOp
+          , thenOp
+          , elseOp
+          , forOp
+          , doOp
+          , endOp
+          , andOp
+          , orOp
+          , notOp
+          ]))
 
 -- | Parser for parenthesis.
 parenP :: Parser Token

@@ -53,6 +53,12 @@ doOp = "do" :: Text
 
 endOp = "end" :: Text
 
+andOp = "and" :: Text
+
+orOp = "or" :: Text
+
+notOp = "not" :: Text
+
 data OperatorID
   = LtEqOp
   | GtEqOp
@@ -81,6 +87,9 @@ data OperatorID
   | ForOp
   | DoOp
   | EndOp
+  | AndOp
+  | OrOp
+  | NotOp
   deriving (Show, Eq)
 
 -- | Convert an operatorID to its unary equivalent, if it exists.
@@ -98,6 +107,7 @@ opPrec op
   | op == CommaOp = 5
   | op `elem` [CreateAssignOp, AssignOp] = 6
   | op == RetTypeOp = 8
+  | op `elem` [AndOp, OrOp, NotOp] = 9
   | op `elem` [LtOp, GtOp, LtEqOp, GtEqOp, EqOp] = 10
   | op `elem` [MinusOp, PlusOp] = 12
   | op `elem` [ProdOp, DivOp] = 24
