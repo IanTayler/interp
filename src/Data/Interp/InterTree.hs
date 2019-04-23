@@ -15,6 +15,18 @@ data InterTree = InterTree
 -- | Alias for empty children in InterTree.
 emptyChildren = S.empty
 
+-- | Safe lookup by index in a tree's children.
+-- Use childrenChildAt if you already have the children pseudolist.
+-- Use childAt if you have the tree.
+childAt :: InterTree -> Int -> Maybe InterTree
+childAt (InterTree _ children) i = S.lookup i children
+
+-- | Wrapper around Sequence.lookup for abstraction (arg order reversed).
+-- Use childrenChildAt if you already have the children pseudolist.
+-- Use childAt if you have the tree.
+childrenChildAt :: S.Seq InterTree -> Int -> Maybe InterTree
+childrenChildAt trees i = S.lookup i trees
+
 -- | Add one child to the end of an existing tree.
 treeAddChild :: InterTree -> InterTree -> InterTree
 treeAddChild tree child =
