@@ -27,8 +27,16 @@ childAt (InterTree _ children) i = S.lookup i children
 -- | Wrapper around Sequence.lookup for abstraction (arg order reversed).
 -- Use childrenChildAt if you already have the children pseudolist.
 -- Use childAt if you have the tree.
-childrenChildAt :: S.Seq InterTree -> Int -> Maybe InterTree
+childrenChildAt :: TreeChildrenType -> Int -> Maybe InterTree
 childrenChildAt trees i = S.lookup i trees
+
+-- | Like head, for TreeChildrenType.
+childrenHead :: TreeChildrenType -> InterTree
+childrenHead (child S.:<| children) = child
+
+-- | Like tail, for TreeChildrenType.
+childrenTail :: TreeChildrenType -> TreeChildrenType
+childrenTail (child S.:<| children) = children
 
 -- | Add one child to the end of an existing tree.
 treeAddChild :: InterTree -> InterTree -> InterTree

@@ -66,7 +66,13 @@ data InterState = InterState
   , parentState :: Maybe InterState
   } deriving (Show)
 
-initState = InterState Map.empty Nothing
+initStateWithParent = InterState Map.empty
+
+initState = initStateWithParent Nothing
+
+-- | Set a new parent for an InterState.
+stateChangeParent :: InterState -> Maybe InterState -> InterState
+stateChangeParent (InterState m _) = InterState m
 
 getLocalVar :: Text -> InterState -> Maybe InterValue
 getLocalVar varName state = Map.lookup varName (varMap state)
@@ -85,12 +91,17 @@ setLocalVar varName val state =
     else Just $
          InterState (Map.insert varName val (varMap state)) (parentState state)
 
-findScopeAndCall :: InterState -> (InterState -> Maybe a) -> Maybe a
-findScopeAndCall state func
+findScopeAndCall ::
+     InterState
+  -> (InterState -> Maybe a)
+  -> ((InterState, Maybe a) -> Maybe a)
+  -> Maybe a
+findScopeAndCall state func constructor
   | null localResult =
     if null parent
       then Nothing
-      else findScopeAndCall (fromJust parent) func
+      else constructor
+             (state, findScopeAndCall (fromJust parent) func constructor)
   | otherwise = localResult
   where
     localResult = func state
@@ -98,11 +109,15 @@ findScopeAndCall state func
 
 -- | Get variable in state or any ancestor state.
 getVar :: Text -> InterState -> Maybe InterValue
-getVar varName state = findScopeAndCall state (getLocalVar varName)
+getVar varName state = findScopeAndCall state (getLocalVar varName) snd
 
 -- | Set existing variable in state or any ancestor state.
 setVar :: Text -> InterValue -> InterState -> Maybe InterState
-setVar name val state = findScopeAndCall state (setLocalVar name val)
+setVar name val state =
+  findScopeAndCall
+    state
+    (setLocalVar name val)
+    (Just . uncurry stateChangeParent)
 
 assignWrapper ::
      (Text -> InterValue -> InterState -> Maybe InterState)
@@ -145,6 +160,17 @@ evalCreateAssign = assignWrapper createLocalVar
 evalAssign :: TreeChildrenType -> InterState -> (InterValue, InterState)
 evalAssign = assignWrapper setVar
 
+-- | Recurse over children in a block, running them all.
+evalInBlock :: TreeChildrenType -> InterState -> (InterValue, InterState)
+evalInBlock children state
+  | null children = (InterVoid, state)
+  | length children == 1 = evalTree child state
+  | otherwise = evalInBlock nextChildren newState
+  where
+    child = childrenHead children
+    nextChildren = childrenTail children
+    (_, newState) = evalTree child state
+
 evalTree :: InterTree -> InterState -> (InterValue, InterState)
 evalTree (InterTree (OperatorTok _ opId) children) state
   -- Normal operators (*, and, >=, etc.)
@@ -165,6 +191,14 @@ evalTree (InterTree (OperatorTok _ opId) children) state
   -- Assignment operators
   | opId == CreateAssignOp = evalCreateAssign children state
   | opId == AssignOp = evalAssign children state
+  -- Special (i.e. weird) operators
+  | opId == SemicolonOp = checkLeftRight (rightVal, rightState)
+  | opId == IfOp =
+    checkLeftRight
+      (if boolVal leftVal
+         then (rightVal, rightState)
+         else (InterVoid, state) -- TODO: add else case.
+       )
   where
     (leftVal, leftState) =
       evalTree (fromJust $ childrenChildAt children 0) state
@@ -186,3 +220,11 @@ evalTree (InterTree (NameTok name) _) state =
         then ( EvalError $ T.concat ["Variable ", name, " does not exist."]
              , state)
         else (fromJust varVal, state)
+evalTree (InterTree BlockTok children) state = (returnVal, newState)
+  where
+    blockState = initStateWithParent (Just state)
+    (returnVal, newBlockState) = evalInBlock children blockState
+    newState =
+      if null $ parentState newBlockState
+        then initState
+        else fromJust $ parentState newBlockState
